@@ -76,6 +76,7 @@ class Assignment(db.Model):
     def mark_grade(cls, _id, grade, auth_principal: AuthPrincipal):
         assignment = Assignment.get_by_id(_id)
         assertions.assert_found(assignment, 'No assignment with this id was found')
+        assertions.assert_valid(assignment.teacher_id == auth_principal.teacher_id, 'This assignment is assigned to another teacher')
         assertions.assert_valid(grade is not None, 'assignment with empty grade cannot be graded')
 
         assignment.grade = grade
@@ -89,14 +90,16 @@ class Assignment(db.Model):
         return cls.filter(cls.student_id == student_id).all()
 
     @classmethod
-    def get_assignments_by_teacher(cls):
-        return cls.query.all()
+    def get_assignments_by_teacher(cls, teacher_id):
+        assignments = cls.query.filter(
+            cls.teacher_id == teacher_id,
+            cls.state.in_([AssignmentStateEnum.SUBMITTED, AssignmentStateEnum.GRADED])
+        ).all()
+        return assignments
 
     @classmethod
     def get_submitted_and_graded(cls):
-        return cls.filter(
-            or_(
+        return cls.filter(or_(
                 cls.state == AssignmentStateEnum.SUBMITTED,
                 cls.state == AssignmentStateEnum.GRADED
-            )
-        ).all()
+            )).all()

@@ -37,11 +37,13 @@ def grade_assignment(p, incoming_payload):
     assignment_data = AssignmentGradeSchema().load(incoming_payload)
     assignment_id = getattr(assignment_data, 'id', None)
     grade = getattr(assignment_data, 'grade', None)
-    if assignment_id is None or grade is None:
-        return APIResponse.respond(status=400, message='Invalid data provided')
+    if not assignment_id or not grade:
+        return APIResponse.respond(data={'error': 'Invalid data provided'}), 400
     assignment = Assignment.get_by_id(assignment_id)
     if not assignment:
-        return APIResponse.respond(status=404, message='Assignment not found')
+        return APIResponse.respond(data={'error': 'Assignment not found'}), 404
+    if assignment.state == AssignmentStateEnum.DRAFT:
+        return APIResponse.respond(data={'error': 'Draft assignments cannot be graded'}), 400
     assignment.grade = grade
     assignment.state = AssignmentStateEnum.GRADED
     db.session.commit()
