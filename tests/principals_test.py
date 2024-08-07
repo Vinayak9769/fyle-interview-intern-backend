@@ -39,7 +39,6 @@ def test_grade_assignment(client, h_principal):
         },
         headers=h_principal
     )
-    print(response.json)
     assert response.status_code == 200
 
     assert response.json['data']['state'] == AssignmentStateEnum.GRADED.value
