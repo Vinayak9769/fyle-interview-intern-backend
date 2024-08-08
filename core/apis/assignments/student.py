@@ -39,7 +39,7 @@ def submit_assignment(p, incoming_payload):
     submit_assignment_payload = AssignmentSubmitSchema().load(incoming_payload)
     assignment = Assignment.get_by_id(submit_assignment_payload.id)
     if assignment.state == (AssignmentStateEnum.SUBMITTED or AssignmentStateEnum.GRADED):
-        return APIResponse.respond({'error': 'FyleError', 'message' : 'only a draft assignment can be submitted'}), 400
+        return APIResponse.respond({'error': 'FyleError', 'message': 'only a draft assignment can be submitted'}), 400
     assignment.teacher_id = submit_assignment_payload.teacher_id
     assignment.state = AssignmentStateEnum.SUBMITTED
     db.session.commit()

@@ -36,7 +36,7 @@ def grade_assignment(p, incoming_payload):
     """Grade or Re-grade an assignment"""
     assignment_data = AssignmentGradeSchema().load(incoming_payload)
     assignment_id = getattr(assignment_data, 'id', None)
-    grade = getattr(assignment_data, 'grade', None)
+    grade = incoming_payload.get('grade', None)
     if not assignment_id or not grade:
         return APIResponse.respond(data={'error': 'Invalid data provided'}), 400
     assignment = Assignment.get_by_id(assignment_id)

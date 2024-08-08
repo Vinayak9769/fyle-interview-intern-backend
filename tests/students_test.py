@@ -16,7 +16,7 @@ def test_get_assignments_student_2(client, h_student_2):
         '/student/assignments',
         headers=h_student_2
     )
-
+    print(response.json)
     assert response.status_code == 200
 
     data = response.json['data']
