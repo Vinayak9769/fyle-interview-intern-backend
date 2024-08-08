@@ -1,5 +1,5 @@
 import random
-from sqlalchemy import text
+from sqlalchemy import text, func, desc
 
 from core import db
 from core.models.assignments import Assignment, AssignmentStateEnum, GradeEnum
@@ -81,13 +81,22 @@ def test_get_assignments_in_graded_state_for_each_student():
 def test_get_grade_A_assignments_for_teacher_with_max_grading():
     """Test to get count of grade A assignments for teacher which has graded maximum assignments"""
 
+    # Added this test to find the teacher with the most graded assignments instead of defaulting to 1 or 2
+    max_graded_teacher = db.session.query(
+        Assignment.teacher_id,
+        func.count(Assignment.id).label('total_graded')
+    ).group_by(Assignment.teacher_id).order_by(desc('total_graded')).first()
+
+    # Get the teacher_id of the teacher with the most assignments graded
+    max_graded_teacher_id = max_graded_teacher.teacher_id
+
+    # Create and grade 5 assignments for the teacher with the most assignments graded (if found)
+    grade_a_count_1 = create_n_graded_assignments_for_teacher(5, max_graded_teacher_id)
+
     # Read the SQL query from a file
     with open('tests/SQL/count_grade_A_assignments_by_teacher_with_max_grading.sql', encoding='utf8') as fo:
         sql = fo.read()
 
-    # Create and grade 5 assignments for the default teacher (teacher_id=1)
-    grade_a_count_1 = create_n_graded_assignments_for_teacher(5)
-    
     # Execute the SQL query and check if the count matches the created assignments
     sql_result = db.session.execute(text(sql)).fetchall()
     assert grade_a_count_1 == sql_result[0][0]
